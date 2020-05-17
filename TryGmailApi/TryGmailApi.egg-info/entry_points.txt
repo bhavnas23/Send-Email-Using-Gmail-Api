@@ -1,0 +1,3 @@
+[gui_scripts]
+baz = TryGmailApi:__main__
+

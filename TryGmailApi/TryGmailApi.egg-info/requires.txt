@@ -1,0 +1,11 @@
+pickle
+os
+googleapiclient.discovery
+google_auth_oauthlib.flow
+google.auth.transport.requests
+base64
+email
+mimetypes
+apiclient
+tkinter
+re

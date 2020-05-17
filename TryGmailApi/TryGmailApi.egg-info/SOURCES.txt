@@ -1,0 +1,7 @@
+setup.py
+TryGmailApi.egg-info/PKG-INFO
+TryGmailApi.egg-info/SOURCES.txt
+TryGmailApi.egg-info/dependency_links.txt
+TryGmailApi.egg-info/entry_points.txt
+TryGmailApi.egg-info/requires.txt
+TryGmailApi.egg-info/top_level.txt
