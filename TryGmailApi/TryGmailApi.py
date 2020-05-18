@@ -13,13 +13,14 @@ import base64
 from email.mime.text import MIMEText
 import mimetypes
 from apiclient import errors
-
-from tkinter import Tk, Entry, Label, Button, StringVar, END, Toplevel
+import time
+from tkinter import Tk, Entry, Label, Button, StringVar, END, Toplevel, Message, RAISED, messagebox
 from tkinter.scrolledtext import ScrolledText
 import re
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://mail.google.com/']
+
 
 class app:
     def __init__(self, root):
@@ -27,14 +28,16 @@ class app:
         self.screen.geometry("500x500")
         self.screen.title("Send Email")
         self.winStart()
-    
+
+    #displays error window
     def winError(self, errorMsg):
         subScreen = Toplevel(self.screen)
         #subScreen.geometry("150x90")
         subScreen.title("Error:")
         Label(subScreen, text=errorMsg, fg="red").pack()
         Button(subScreen, text="OK", command=subScreen.destroy).pack()
-        
+
+    #displays Redirect window
     def winRedirect(self):
         subScreen = Toplevel(self.screen)
         subScreen.geometry("300x90")
@@ -43,6 +46,7 @@ class app:
               fg="red").pack()
         Button(subScreen, text="OK", command=subScreen.destroy).pack()
 
+    #displays succes window
     def winSuccess(self):
         subScreen = Toplevel(self.screen)
         subScreen.geometry("150x90")
@@ -51,7 +55,7 @@ class app:
               fg="red").pack()
         Button(subScreen, text="OK", command=subScreen.destroy).pack()
 
-        
+    #program begins here
     def winStart(self):
         self.receiverId=StringVar()
         self.subject=StringVar()
@@ -61,36 +65,64 @@ class app:
         Label(text="Subject *").place(x=15, y=140)
         Label(text="Body *").place(x=15, y=210)
 
-        self.creds=self.validateCreds()
-        self.validateFields()
-
-    def validateCreds(self):
-        creds=None
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
-                creds = pickle.load(token)
-
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                self.winRedirect()
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open('token.pickle', 'wb') as token:
-                pickle.dump(creds, token)
-        #print("creds: "+creds)
-        return creds
-
-    def validateFields(self):
 
         Entry(self.screen, textvariable=self.receiverId, width=75).place(x=15, y=100)
         Entry(self.screen, textvariable=self.subject, width=75).place(x=15, y=170)
         self.body = ScrolledText(self.screen, height=10, width=55)
         self.body.place(x=15, y=240)
+        try:
+            self.creds=self.validateCreds()
+            try:
+                self.validateFields()
+            except Exception as e:
+                print(messagebox.showerror("Error", e))
+        except Exception as e:
+            print(messagebox.showerror("Error", e))
+        
+            
+
+    #validate credentials and token files
+    def validateCreds(self):
+        creds=None
+        if os.path.exists('token.pickle'):
+            with open('token.pickle', 'rb') as token:
+                creds = pickle.load(token)
+            return creds
+        # If there are no (valid) credentials available, let the user log in.
+        #cont="cancel"
+        cont=False
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                with open('token.pickle', 'wb') as token:
+                    pickle.dump(creds, token)
+                cont=True
+                return creds               
+            else:
+                #self.winRedirect()
+                cont = messagebox.askokcancel("Registration", "You are not registered!! Click OK to register Cancel to Quit")
+                print(cont)
+        #print("hi"+cont)
+        if cont==True:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+            # Save the credentials for the next run
+            with open('token.pickle', 'wb') as token:
+                pickle.dump(creds, token)
+            return creds
+        else:
+            self.screen.destroy()            
+            raise Exception("Program Quit" )
+        
+
+    #validae fields
+    def validateFields(self):
+
+        #Entry(self.screen, textvariable=self.receiverId, width=75).place(x=15, y=100)
+        #Entry(self.screen, textvariable=self.subject, width=75).place(x=15, y=170)
+        #self.body = ScrolledText(self.screen, height=10, width=55)
+        #self.body.place(x=15, y=240)
         #self.body=st.get(1.0, END)
 
             
@@ -103,18 +135,15 @@ class app:
             bodyTxt=self.body.get(1.0, END)
 
             #validating one or many email ids
-            if receiverIdTxt=='' or receiverIdTxt[-1]!=';':
-                receiverIdTxt+=';'
-
-            regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3};$'
-            
-            if re.search(regex,receiverIdTxt)is None:
-                self.winError("Invalid Email Id")
+            regex = '(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*;\s*|\s*$))+'
+            if re.fullmatch(regex, receiverIdTxt) is None:#len([re.search(regex, receiverIdTxt)])!=len(receiverIdTxt.split(';')):
+                    self.winError("Invalid Email Id")
             else:
                 self.winSendMail(receiverIdTxt, subjectTxt, bodyTxt)
 
         Button(self.screen, text="Send", width=7, bg="gray", command=register).place(x=15, y=430)
 
+    #Create and Send Email
     def winSendMail(self, to, subject, body):        
         service = build('gmail', 'v1', credentials=self.creds)
 
