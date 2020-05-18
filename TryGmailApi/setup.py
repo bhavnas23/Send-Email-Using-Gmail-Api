@@ -9,17 +9,10 @@ setup(
     packages=find_packages(include=['TryGmailApi']),
     python_requires='>=3.5.2',
     install_requires=[
-        'pickle',
-        'os',
-        'googleapiclient.discovery',
-        'google_auth_oauthlib.flow',
-        'google.auth.transport.requests',
-        'base64',
+        'googleapiclient',
+        'google_auth_oauthlib',
         'email',
-        'mimetypes',
-        'apiclient',
-        'tkinter',
-        're'
+        'apiclient'        
         ],
     entry_points={
         "gui_scripts":[
