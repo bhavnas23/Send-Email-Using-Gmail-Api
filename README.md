@@ -13,6 +13,6 @@ Steps:
 Future Scope:
  1. Add attachment, Bcc and Cc fields.
  2. Mail scheduling
- 3. Change sender's email id.
+ 3. Allow use to change sender's email id.
 
-Demo: See demo.webm to get an overbiew of the app (can use VLC Media player to open)
+Demo: See demo.webm to get an overview of the app (can use VLC Media player to open)
